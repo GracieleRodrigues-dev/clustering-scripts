@@ -1,14 +1,20 @@
 {
+  "type": "module",
   "name": "clustering-scripts",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "kmeans": "parcel ./src/kmeans.html",
+    "hierarchical": "parcel ./src/hierarchical.html"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "hierarchical-clustering": "^1.1.0",
     "ml5": "^0.12.2"
+  },
+  "devDependencies": {
+    "parcel": "^2.12.0"
   }
 }

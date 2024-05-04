@@ -1,10 +1,15 @@
-import dataset from '../dataset.json' assert { type: "json" };
+import dataset from '../dataset.json' assert { type: 'json' };
 
-export const getDataset = (x, y) => {
-    if(!x || !y) return [];
+export const getKmeansDataset = (x, y) => {
+  if (!x || !y) return [];
 
-    return dataset.map((item) => ({
-      x: item[x],
-      y: item[y]
-    }));
-  };
+  return dataset.map(item => ({
+    x: item[x],
+    y: item[y]
+  }));
+};
+
+export const getHierarchicalDataset = x => {
+  if (!x) return [];
+  return dataset.map(item => item[x]);
+};

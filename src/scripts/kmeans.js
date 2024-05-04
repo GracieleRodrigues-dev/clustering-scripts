@@ -1,12 +1,12 @@
-import { getDataset } from "../utils/functions.js";
+import { getKmeansDataset } from '../utils/functions.js';
 
-const dataset = getDataset('area', 'perimetro');
-let calculated =false;
+const dataset = getKmeansDataset('area', 'perimetro');
+let calculated = false;
 
 const options = {
   k: 4,
   maxIter: 4,
-  threshold: 0.5,
+  threshold: 0.5
 };
 
 // Initialize kmeans
@@ -14,13 +14,12 @@ const kmeans = ml5.kmeans(dataset, options, clustersCalculated);
 
 // When the model is loaded
 function clustersCalculated() {
-  calculated = true; 
+  calculated = true;
   console.log('Points Clustered!');
   console.log(calculated);
   console.log(kmeans.dataset);
   //console.log(kmeans.centroids);
 }
-
 
 /*
 function draw() {
