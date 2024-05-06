@@ -23,6 +23,7 @@ properties.forEach(property => {
 // create the model
 function make() {
   const currentClusterCount = parseInt(document.getElementById("clusterInput").value);
+
   const options = {
     'k': currentClusterCount,
     'maxIter': 10,
@@ -54,15 +55,30 @@ function makeChart() {
     .attr('width', width)
     .attr('height', height);
 
+   const margin = {top:20,right:20,bottom:50,left:50};
+   const innerWidth = width - margin.left - margin.right;
+   const innerHeight = height - margin.top - margin.bottom;
+
   // d[0] is for the x value in the array
   const xScale = d3.scaleLinear()
     .domain(d3.extent(dataset, d => d[0]))
-    .range([10, width - 100]);
+    .range([margin.left, innerWidth + margin.left]);
 
   // d[1] is for the y value in the array
   const yScale = d3.scaleLinear()
     .domain(d3.extent(dataset, d => d[1]))
-    .range([height - 50, 20]);
+    .range([innerHeight + margin.top, margin.top]);
+
+  const xAxis = d3.axisBottom(xScale);  
+  const yAxis = d3.axisLeft(yScale);
+
+  svg.append('g')
+    .attr('transform', `translate(0, ${innerHeight + margin.top})`)
+    .call(xAxis);
+
+  svg.append('g')
+    .attr('transform', `translate(${margin.left}, 0)`)
+    .call(yAxis);  
 
   svg.selectAll('circle').data(dataset)
     .enter().append('circle')
