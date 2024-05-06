@@ -1,10 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Hierarchical</title>
-</head>
-<body>
-  <script type="module" src="./scripts/hierarchical.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Hierarchical</title>
+    <style>
+      * {
+        padding: 0px;
+        margin: 0px;
+        box-sizing: border-box;
+      }
+      .chart {
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+        background-color: white;
+      }
+      .svg {
+        padding: 40px;
+        transform: translate(190deg);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="chart" class="chart"></div>
+    <script type="module" src="./scripts/hierarchical.js"></script>
+  </body>
 </html>

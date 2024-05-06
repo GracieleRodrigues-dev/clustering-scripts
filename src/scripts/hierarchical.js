@@ -1,11 +1,14 @@
+import * as d3 from 'd3';
 import cluster from 'hierarchical-clustering';
 import { getHierarchicalDataset } from '../utils/functions.js';
 
-const dataset = getHierarchicalDataset('area');
+const dataset = getHierarchicalDataset('area')
+  // .splice(0, 30)
+  .map(item => [item]);
 
 const distance = (a, b) => {
-  var d = 0;
-  for (var i = 0; i < a.length; i++) {
+  let d = 0;
+  for (let i = 0; i < a.length; i++) {
     d += Math.pow(a[i] - b[i], 2);
   }
   return Math.sqrt(d);
@@ -52,18 +55,71 @@ const elbow = (data, maxClusters) => {
   return { optimalClusters: elbowPoint + 1, variances: variances };
 };
 
-console.log('Processando...');
+const makeChart = data => {
+  const width = 8000;
+  const height = 3000;
 
-const levels = cluster({
+  console.log(data);
+
+  const svg = d3
+    .select('#chart')
+    .append('svg')
+    .attr('width', width)
+    .attr('height', height)
+    .attr('class', 'svg')
+    .call(
+      d3.zoom().on('zoom', function () {
+        svg.attr('transform', d3.zoomTransform(this));
+      })
+    )
+    .append('g');
+
+  const cluster = d3.cluster().size([width, height - 100]);
+
+  const root = d3.hierarchy({
+    children: data.map(d => ({
+      children: d.clusters[0].map(point => ({ id: point }))
+    }))
+  });
+
+  cluster(root);
+
+  svg
+    .selectAll('.link')
+    .data(root.links())
+    .enter()
+    .append('path')
+    .attr('class', 'link')
+    .attr('d', d => `M${d.source.x},${d.source.y}L${d.target.x},${d.target.y}`)
+    .attr('fill', 'none')
+    .attr('stroke', 'black')
+    .attr('stroke-width', 1);
+
+  const node = svg
+    .selectAll('.node')
+    .data(root.descendants())
+    .enter()
+    .append('g')
+    .attr('class', 'node')
+    .attr('transform', d => `translate(${d.x},${d.y})`);
+
+  node.append('circle').attr('r', 4).attr('fill', 'black');
+};
+
+let levels = null;
+
+console.log(dataset);
+
+levels = cluster({
   input: dataset,
   distance: distance,
   linkage: linkage,
   minClusters: 2
 });
 
-const { optimalClusters, variances } = elbow(dataset, 5);
+// const { optimalClusters, variances } = elbow(dataset, 5);
 
-console.clear();
-console.log(levels);
-console.log('Variações:', variances);
-console.log('Número ótimo de clusters:', optimalClusters);
+if (levels) makeChart(levels);
+
+// console.log('Variações:', variances);
+// console.log('Número ótimo de clusters:', optimalClusters);
