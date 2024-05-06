@@ -1,4 +1,4 @@
-import { getKmeansDataset } from '../utils/functions.js';
+import { getKmeansDataset, getPropertiesList } from '../utils/functions.js';
 
 let kmeansModel;
 
@@ -7,6 +7,18 @@ const height = 480;
 
 // Add event listener to the submit button
 document.getElementById("clusterButton").addEventListener("click", make);
+
+// Populate select options with property names
+const properties = getPropertiesList();
+const xSelect = document.getElementById("xSelect");
+const ySelect = document.getElementById("ySelect");
+
+properties.forEach(property => {
+  const option = document.createElement("option");
+  option.text = property;
+  xSelect.add(option.cloneNode(true));
+  ySelect.add(option);
+});
 
 // create the model
 function make() {
@@ -17,8 +29,12 @@ function make() {
     'threshold': 2,
   };
 
-  const data = getKmeansDataset('area', 'perimetro');
+  const selectedX = xSelect.value;
+  const selectedY = ySelect.value;
+
+  const data = getKmeansDataset(selectedX, selectedY);
   console.log("iniciando o kmeans");
+  console.log("agrupando por " + selectedX + " e " + selectedY);
   kmeansModel = ml5.kmeans(data, options, modelReady);
 }
 

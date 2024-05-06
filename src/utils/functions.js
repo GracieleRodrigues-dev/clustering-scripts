@@ -13,3 +13,8 @@ export const getHierarchicalDataset = x => {
   if (!x) return [];
   return dataset.map(item => item[x]);
 };
+
+// Retorna todas as propriedades disponíveis no dataset
+export const getPropertiesList = () => {
+  return Object.keys(dataset[0]);
+};
