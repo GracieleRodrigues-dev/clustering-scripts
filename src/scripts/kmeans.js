@@ -1,107 +1,186 @@
-import { getKmeansDataset, getPropertiesList } from '../utils/functions.js';
+import datasetOriginal from '../dataset.json';
+import { createDatasetFromPresets } from '../utils/functions.js';
+import { presets } from './presets.js';
 
-let kmeansModel;
 
-const width = 640;
-const height = 480;
+//vamos carregar as opções dos presets
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelector('.fa-question-circle').addEventListener('click', () => {
+    let message = "";
+    Object.entries(presets).forEach(([preset, properties]) => {
+      message += `Preset ${preset}: ${properties.join(', ')}\n\n`;
+    });
+    alert(message);
+  });
 
-// Add event listener to the submit button
-document.getElementById("clusterButton").addEventListener("click", make);
+  const presetSelect = document.getElementById("presetSelect");
+  Object.keys(presets).forEach(preset => {
+    const option = document.createElement("option");
+    option.value = preset;
+    option.text = preset;
+    presetSelect.appendChild(option);
+  });
 
-// Populate select options with property names
-const properties = getPropertiesList();
-const xSelect = document.getElementById("xSelect");
-const ySelect = document.getElementById("ySelect");
+  let kmeansModel;
 
-properties.forEach(property => {
-  const option = document.createElement("option");
-  option.text = property;
-  xSelect.add(option.cloneNode(true));
-  ySelect.add(option);
+  const width = 960;
+  const height = 960;
+
+  // Adiciona event listener ao botão
+  document.getElementById("clusterButton").addEventListener("click", make);
+
+  // Cria o modelo kmeans
+  function make() {
+    const currentClusterCount = parseInt(document.getElementById("clusterInput").value);
+    const selectedPreset = document.getElementById("presetSelect").value;
+    const selectedProperties = presets[selectedPreset];
+
+    const maxIter = parseInt(document.getElementById("maxIterInput").value);
+    const threshold = parseFloat(document.getElementById("thresholdInput").value);
+
+    const options = {
+      'k': currentClusterCount,
+      'maxIter': maxIter,
+      'threshold': threshold,
+    };
+
+    const data = createDatasetFromPresets(selectedProperties);
+
+    console.log("Iniciando o kmeans");
+    console.log("Agrupando por : " + selectedPreset + " " + selectedProperties);
+    console.log("Dados para K-Means:", data);
+    kmeansModel = ml5.kmeans(data, options, () => modelReady(selectedProperties));
+  }
+
+  // Quando o modelo está pronto, cria o gráfico
+  function modelReady(selectedProperties) {
+    console.log("Clusters calculados!");
+    makeChart(selectedProperties);
+  }
+
+  // Cria a matriz de gráficos de dispersão
+  function makeChart(selectedProperties) {
+    const dataset = kmeansModel.dataset.map((d, i) => {
+      let obj = { cluster: d.centroid }; 
+      selectedProperties.forEach((prop, index) => {
+        obj[prop] = d[index];
+      });
+      obj['classe'] = datasetOriginal[i].classe;
+      return obj;
+    });
+
+    const numVar = selectedProperties.length;
+    const size = width / numVar;
+    const padding = 20;
+
+    d3.select('svg').remove();
+
+    const svg = d3.select('#chart')
+      .append('svg')
+      .attr('width', width + padding)
+      .attr('height', height + padding)
+      .append('g')
+      .attr('transform', `translate(${padding / 2},${padding / 2})`);
+
+    const xScales = {};
+    const yScales = {};
+
+    selectedProperties.forEach(prop => {
+      xScales[prop] = d3.scaleLinear()
+        .domain(d3.extent(dataset, d => d[prop]))
+        .range([padding / 2, size - padding / 2]);
+
+      yScales[prop] = d3.scaleLinear()
+        .domain(d3.extent(dataset, d => d[prop]))
+        .range([size - padding / 2, padding / 2]);
+    });
+
+    const color = d3.scaleOrdinal(d3.schemeCategory10);
+
+    selectedProperties.forEach((propX, i) => {
+      selectedProperties.forEach((propY, j) => {
+        if (i === j) {
+          svg.append('g')
+            .attr('transform', `translate(${i * size},${j * size})`)
+            .append('text')
+            .attr('x', size / 2)
+            .attr('y', size / 2)
+            .attr('text-anchor', 'middle')
+            .text(propX);
+        } else {
+          const cell = svg.append('g')
+            .attr('transform', `translate(${i * size},${j * size})`);
+
+          cell.append('g')
+            .attr('transform', `translate(0,${size - padding / 2})`)
+            .call(d3.axisBottom(xScales[propX]).ticks(5));
+
+          cell.append('g')
+            .attr('transform', `translate(${padding / 2},0)`)
+            .call(d3.axisLeft(yScales[propY]).ticks(5));
+
+          cell.selectAll('circle')
+            .data(dataset)
+            .enter().append('circle')
+            .attr('cx', d => xScales[propX](d[propX]))
+            .attr('cy', d => yScales[propY](d[propY]))
+            .attr('r', 3)
+            .attr('fill', d => color(d.cluster));
+        }
+      });
+    });
+
+    // Adiciona a legenda
+    createLegend(dataset, color);
+  }
+
+  // Função para criar a legenda
+  function createLegend(dataset, color) {
+    const legendContainer = d3.select('#legend').html(''); // Limpa a legenda anterior
+  
+    // Agrupa os dados por cluster e por classe
+    const clusterGroups = {};
+    dataset.forEach(d => {
+      const cluster = d.cluster;
+      const classe = d.classe;
+      if (!clusterGroups[cluster]) {
+        clusterGroups[cluster] = {};
+        clusterGroups[cluster].total = 0; // Inicializa o contador total
+      }
+      if (!clusterGroups[cluster][classe]) {
+        clusterGroups[cluster][classe] = 0;
+      }
+      clusterGroups[cluster][classe]++;
+      clusterGroups[cluster].total++; // Incrementa o contador total
+    });
+  
+    // Cria os elementos da legenda
+    Object.keys(clusterGroups).forEach(cluster => {
+      const clusterDiv = legendContainer.append('div').attr('class', 'legend-item');
+      clusterDiv.append('span')
+        .style('background-color', color(cluster))
+        .style('display', 'inline-block')
+        .style('width', '20px')
+        .style('height', '20px')
+        .style('margin-right', '10px');
+      clusterDiv.append('span').text(`Cluster ${cluster}: (${clusterGroups[cluster].total})`); // Adiciona o total de pontos
+      // Ordena as classes do cluster do maior para o menor
+      const sortedClasses = Object.keys(clusterGroups[cluster]).sort((a, b) => clusterGroups[cluster][b] - clusterGroups[cluster][a]);
+      sortedClasses.forEach(classe => {
+        if (classe !== 'total') { // Ignora o total na legenda
+          clusterDiv.append('div').attr('class', 'legend-species')
+            .style('padding-left', '30px')
+            .text(`${classe}: ${clusterGroups[cluster][classe]}`);
+        }
+      });
+    });
+  
+    // Adiciona estilos inline
+    d3.selectAll('.legend-item')
+      .style('margin-bottom', '10px');
+  
+    d3.selectAll('.legend-species')
+      .style('margin-left', '30px');
+  }
+  
 });
-
-// create the model
-function make() {
-  const currentClusterCount = parseInt(document.getElementById("clusterInput").value);
-
-  const options = {
-    'k': currentClusterCount,
-    'maxIter': 10,
-    'threshold': 2,
-  };
-
-  const selectedX = xSelect.value;
-  const selectedY = ySelect.value;
-
-  const data = getKmeansDataset(selectedX, selectedY);
-  console.log("iniciando o kmeans");
-  console.log("agrupando por " + selectedX + " e " + selectedY);
-  kmeansModel = ml5.kmeans(data, options, modelReady);
-}
-
-// when the model is ready, make the chart
-function modelReady() {
-  console.log("Clusters calculados!");
-  makeChart()
-}
-
-// use the fancy d3 to make magic
-function makeChart() {
-  const dataset = kmeansModel.dataset;
-  d3.select('svg').remove();
-
-  // reappend the svg to the chart area
-  const svg = d3.select('#chart').append('svg')
-    .attr('width', width)
-    .attr('height', height);
-
-   const margin = {top:20,right:20,bottom:50,left:50};
-   const innerWidth = width - margin.left - margin.right;
-   const innerHeight = height - margin.top - margin.bottom;
-
-  // d[0] is for the x value in the array
-  const xScale = d3.scaleLinear()
-    .domain(d3.extent(dataset, d => d[0]))
-    .range([margin.left, innerWidth + margin.left]);
-
-  // d[1] is for the y value in the array
-  const yScale = d3.scaleLinear()
-    .domain(d3.extent(dataset, d => d[1]))
-    .range([innerHeight + margin.top, margin.top]);
-
-  const xAxis = d3.axisBottom(xScale);  
-  const yAxis = d3.axisLeft(yScale);
-
-  svg.append('g')
-    .attr('transform', `translate(0, ${innerHeight + margin.top})`)
-    .call(xAxis);
-
-  svg.append('g')
-    .attr('transform', `translate(${margin.left}, 0)`)
-    .call(yAxis);  
-
-  svg.selectAll('circle').data(dataset)
-    .enter().append('circle')
-    .attr('cx', d => xScale(d[0]))
-    .attr('cy', d => yScale(d[1]))
-    .attr('r', 6)
-    .attr('fill', 'black')
-
-  d3.select('svg').selectAll('circle')
-    .transition()
-    .attr('fill', (d, i) => createRGB(dataset[i].centroid))
-}
-
-// Função para gerar uma cor RGB com base no valor do centroide
-function createRGB(centroid) {
-  // Calcular o deslocamento baseado no valor do centroid
-  const offset = centroid * 30; // Ajuste conforme necessário para a distância desejada entre as cores
-
-  // Calcular os componentes RGB com base no deslocamento
-  const r = (centroid * 53 + offset) % 255; // calcular R
-  const g = (centroid * 101 + offset) % 255; // calcular G
-  const b = (centroid * 157 + offset) % 255; // calcular B
-
-  // Retorna a cor RGB no formato 'rgb(x, y, z)'
-  return `rgb(${r}, ${g}, ${b})`;
-}
