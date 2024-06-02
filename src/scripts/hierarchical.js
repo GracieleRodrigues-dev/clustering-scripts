@@ -3,7 +3,7 @@ import cluster from 'hierarchical-clustering';
 import { getHierarchicalDataset } from '../utils/functions.js';
 
 const dataset = getHierarchicalDataset('area')
-  // .splice(0, 30)
+  .splice(0, 100)
   .map(item => [item]);
 
 const distance = (a, b) => {
@@ -59,8 +59,6 @@ const makeChart = data => {
   const width = 8000;
   const height = 3000;
 
-  console.log(data);
-
   const svg = d3
     .select('#chart')
     .append('svg')
@@ -74,7 +72,7 @@ const makeChart = data => {
     )
     .append('g');
 
-  const cluster = d3.cluster().size([width, height - 100]);
+  const cluster = d3.cluster().size([width, height]);
 
   const root = d3.hierarchy({
     children: data.map(d => ({
@@ -117,9 +115,17 @@ levels = cluster({
   minClusters: 2
 });
 
-// const { optimalClusters, variances } = elbow(dataset, 5);
+const makeInfos = () => {
+  const { optimalClusters } = elbow(dataset, 5);
 
-if (levels) makeChart(levels);
+  const infos = document.querySelector('.infos');
+  const elbowInfo = document.querySelector('#elbow');
 
-// console.log('Variações:', variances);
-// console.log('Número ótimo de clusters:', optimalClusters);
+  infos.setAttribute('style', 'display: flex');
+  elbowInfo.innerHTML = `Número ótimo de clusters: ${optimalClusters}`;
+};
+
+if (levels) {
+  makeChart(levels);
+  makeInfos();
+}
