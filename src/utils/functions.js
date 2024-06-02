@@ -14,7 +14,8 @@ export const getHierarchicalDataset = x => {
   return dataset.map(item => item[x]);
 };
 
-// Retorna todas as propriedades disponíveis no dataset
-export const getPropertiesList = () => {
-  return Object.keys(dataset[0]);
+export const createDatasetFromPresets = (selectedProperties) => {
+  return dataset.map(item => {
+    return selectedProperties.map(prop => item[prop]);
+  });
 };
