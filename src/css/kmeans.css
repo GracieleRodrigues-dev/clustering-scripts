@@ -1,0 +1,29 @@
+#chart-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    margin-top: 20px;
+  }
+  
+#chart {
+    flex: 1;
+}
+  
+#legend {
+    flex: 1;
+    margin-left: 20px; /* Espaço entre o gráfico e a legenda */
+}
+  
+.help-icon {
+    margin-left: 5px;
+    cursor: pointer;
+}
+  
+.input-group {
+    display: flex;
+    align-items: center;
+}
+
+.input-group label {
+    margin-right: 10px;
+}

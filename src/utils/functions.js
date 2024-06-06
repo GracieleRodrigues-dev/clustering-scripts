@@ -13,3 +13,9 @@ export const getKmeansDataset = (x, y) => {
 export const getPropertiesList = () => {
   return Object.keys(dataset[0]);
 };
+
+export const createDatasetFromPresets = selectedProperties => {
+  return dataset.map(item => {
+    return selectedProperties.map(prop => item[prop]);
+  });
+};
