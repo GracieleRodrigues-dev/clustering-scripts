@@ -184,3 +184,172 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   
 });
+
+document.getElementById("elbowButton").addEventListener("click", generateElbowCurve);
+
+async function generateElbowCurve() {
+  const maxK = parseInt(document.getElementById("clusterInput").value) || 10;
+  const selectedPreset = document.getElementById("presetSelect").value;
+  const selectedProperties = presets[selectedPreset];
+  const data = createDatasetFromPresets(selectedProperties);
+
+  const wcss = [];
+  const kmeansModels = [];
+
+  async function calculateKMeans(k) {
+      const options = {
+        'k': k,
+        'maxIter': 300,
+        'threshold': 1e-4,
+      };
+      console.log(`Calculating K-means for k=${k}`);
+      kmeansModels[k] = ml5.kmeans(data, options);        
+  }
+
+  try {
+    for (let k = 1; k <= maxK; k++) {
+      await calculateKMeans(k);
+    }
+    console.log('All models calculated, calculating WCSS');
+    //console.log(kmeansModels[1].dataset[1]);
+    calculateAllWCSS();
+  } catch (error) {
+    console.error(error);
+  }
+
+function calculateAllWCSS() {
+    for (let k = 1; k <= maxK; k++) {
+        const model = kmeansModels[k];
+        if (!model) {
+            console.log(`Model for k=${k} not found`);
+            continue;
+        }
+
+        console.log(`Calculating WCSS for k=${k}`);
+
+        const clusterSums = {}; // Somas das coordenadas dos pontos por cluster
+        const clusterCounts = {}; // Contagem de pontos por cluster
+
+        for (let i = 0; i < model.dataset.length; i++) {
+            const d = model.dataset[i];
+            const centroidIndex = d.centroid;
+            
+            if (!clusterSums[centroidIndex]) {
+                clusterSums[centroidIndex] = Array(selectedProperties.length).fill(0);
+                clusterCounts[centroidIndex] = 0;
+            }
+    
+            selectedProperties.forEach((prop, j) => {
+                clusterSums[centroidIndex][j] += d[j]; // Corrigido para d[j]
+            });
+    
+            clusterCounts[centroidIndex]++;
+        }
+
+        const centroids = {};
+        for (let index in clusterSums) {
+            centroids[index] = clusterSums[index].map(sum => sum / clusterCounts[index]);
+        }
+
+        const sumSquares = model.dataset.reduce((sum, d) => {
+            const centroidIndex = d.centroid;
+            const centroid = centroids[centroidIndex];
+            const distance = selectedProperties.reduce((distanceSum, prop, i) => {
+                return distanceSum + Math.pow(d[i] - centroid[i], 2); 
+            }, 0);
+            return sum + distance;
+        }, 0);
+
+        wcss.push({ k, wcss: sumSquares });
+    }
+
+    console.log("All WCSS calculated:", wcss);
+    plotElbowCurve(wcss);
+  }
+}
+
+function plotElbowCurve(wcss) {
+  const svgWidth = 500, svgHeight = 400;
+  const margin = { top: 20, right: 30, bottom: 40, left: 50 };
+  const width = svgWidth - margin.left - margin.right;
+  const height = svgHeight - margin.top - margin.bottom;
+
+  d3.select("#elbowChart").html("");
+
+  const svg = d3.select("#elbowChart")
+      .append("svg")
+      .attr("width", svgWidth)
+      .attr("height", svgHeight)
+      .append("g")
+      .attr("transform", `translate(${margin.left},${margin.top})`);
+
+  const x = d3.scaleLinear()
+      .domain([1, d3.max(wcss, d => d.k)])
+      .range([0, width]);
+
+  const y = d3.scaleLinear()
+      .domain([0, d3.max(wcss, d => d.wcss)])
+      .range([height, 0]);
+
+  const xAxis = d3.axisBottom(x).ticks(wcss.length);
+  const yAxis = d3.axisLeft(y);
+
+  svg.append("g")
+      .attr("transform", `translate(0,${height})`)
+      .call(xAxis)
+      .append("text")
+      .attr("fill", "#000")
+      .attr("x", width / 2)
+      .attr("y", margin.bottom - 10)
+      .attr("text-anchor", "middle")
+      .text("Number of Clusters (k)");
+
+  svg.append("g")
+      .call(yAxis)
+      .append("text")
+      .attr("fill", "#000")
+      .attr("transform", "rotate(-90)")
+      .attr("y", -margin.left + 15)
+      .attr("x", -height / 2)
+      .attr("text-anchor", "middle")
+      .text("WCSS");
+
+  svg.append("path")
+      .datum(wcss)
+      .attr("fill", "none")
+      .attr("stroke", "steelblue")
+      .attr("stroke-width", 1.5)
+      .attr("d", d3.line()
+          .x(d => x(d.k))
+          .y(d => y(d.wcss))
+      );
+
+  // Criar elemento de tooltip
+  const tooltip = d3.select("body").append("div")
+      .attr("class", "tooltip")
+      .style("opacity", 0);
+
+  svg.selectAll(".dot")
+      .data(wcss)
+      .enter().append("circle")
+      .attr("class", "dot")
+      .attr("cx", d => x(d.k))
+      .attr("cy", d => y(d.wcss))
+      .attr("r", 5)
+      .on("mouseover", function(d) {
+          // Ao passar o mouse sobre o ponto, exibe o valor de WCSS
+          const tooltipText = `k: ${d.k}, WCSS: ${d.wcss.toFixed(2)}`;
+          tooltip.transition()
+              .duration(200)
+              .style("opacity", .9);
+          tooltip.html(tooltipText)
+              .style("left", (d3.event.pageX) + "px")
+              .style("top", (d3.event.pageY - 28) + "px");
+      })
+      .on("mouseout", function(d) {
+          // Ao retirar o mouse do ponto, esconde o tooltip
+          tooltip.transition()
+              .duration(500)
+              .style("opacity", 0);
+      });
+}
