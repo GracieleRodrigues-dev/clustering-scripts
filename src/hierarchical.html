@@ -11,9 +11,66 @@
     <link rel="stylesheet" href="./styles/hierarchical.css" />
   </head>
   <body>
-    <h3>Hierarchical</h3>
-    <div id="container"></div>
-
+    <main>
+      <section class="header">
+        <h3 class="title">Hierarchical</h3>
+        <select id="preset">
+          <option value="dimensions">Dimensões</option>
+          <option value="shapes">Forma</option>
+          <option value="colors">Coloração</option>
+        </select>
+      </section>
+      <section class="body">
+        <div id="container"></div>
+        <div class="presets">
+          <h5>Presets</h5>
+          <details>
+            <summary>
+              <span>Dimensões</span>
+            </summary>
+            <small>area</small>
+            <small>perimetro</small>
+            <small>eixo_maior</small>
+            <small>eixo_menor</small>
+            <small>extensao</small>
+            <small>redondidade</small>
+            <small>compactidade</small>
+          </details>
+          <details>
+            <summary>
+              <span>Forma</span>
+            </summary>
+            <small>fator_forma_1</small>
+            <small>fator_forma_2</small>
+            <small>fator_forma_3</small>
+            <small>fator_forma_4</small>
+          </details>
+          <details>
+            <summary>
+              <span>Coloração</span>
+            </summary>
+            <small>RR_media</small>
+            <small>RG_media</small>
+            <small>RB_media</small>
+            <small>RR_dev</small>
+            <small>RG_dev</small>
+            <small>RB_dev</small>
+            <small>RR_inclinacao</small>
+            <small>RG_inclinacao</small>
+            <small>RB_inclinacao</small>
+            <small>RR_curtose</small>
+            <small>RG_curtose</small>
+            <small>RB_curtose</small>
+            <small>RR_entropia</small>
+            <small>RG_entropia</small>
+            <small>RB_entropia</small>
+            <small>RR_all</small>
+            <small>RG_all</small>
+            <small>RB_all</small>
+          </details>
+        </div>
+      </section>
+    </main>
     <script src="http://d3js.org/d3.v3.min.js"></script>
     <script type="module" src="./scripts/hierarchical.js"></script>
   </body>
