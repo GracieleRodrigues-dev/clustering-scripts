@@ -76,6 +76,18 @@ main {
   border-bottom: 1px solid black;
 }
 
+.filters {
+  gap: 5px;
+  display: flex;
+  align-items: center;
+}
+
+.form-control {
+  width: 120px;
+  display: flex;
+  flex-direction: column;
+}
+
 #container {
   width: 550px;
   height: 550px;

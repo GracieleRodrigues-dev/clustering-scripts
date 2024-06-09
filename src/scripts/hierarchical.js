@@ -5,8 +5,8 @@ const width = 500;
 const height = 500;
 
 const containerEl = document.querySelector('#container');
-const selectPresetEl = document.querySelector('#preset');
-const selectSizeEl = document.querySelector('#size');
+const selectSizeEl = document.querySelector('#select-size');
+const selectPresetEl = document.querySelector('#select-preset');
 
 const dimensions = dataset.map(item => ({
   name: '',
@@ -197,7 +197,7 @@ const countClusters = (nodes, cutoff) => {
 setupDendrogram(presets.dimensions);
 
 selectPresetEl.addEventListener('change', e => {
-  const size = document.querySelector('#size').value;
+  const size = selectSizeEl.value;
   const { value } = e.target;
 
   containerEl.innerHTML = '';
@@ -205,7 +205,7 @@ selectPresetEl.addEventListener('change', e => {
 });
 
 selectSizeEl.addEventListener('change', e => {
-  const preset = document.querySelector('#preset').value;
+  const preset = selectPresetEl.value;
   const { value } = e.target;
 
   containerEl.innerHTML = '';
