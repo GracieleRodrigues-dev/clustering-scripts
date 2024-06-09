@@ -1,13 +1,13 @@
 import hcluster from 'hclusterjs';
 import dataset from '../dataset.json' assert { type: 'json' };
 
-const dimensions = dataset.splice(0, 100).map(item => ({
-  name: ``,
+const dimensions = dataset.splice(0, 6).map(item => ({
+  name: '',
   position: [item.area]
 }));
 
-const shapes = dataset.slice(0, 100).map(item => ({
-  name: ``,
+const shapes = dataset.slice(0, 6).map(item => ({
+  name: '',
   position: [
     item.fator_forma_1,
     item.fator_forma_2,
@@ -16,8 +16,8 @@ const shapes = dataset.slice(0, 100).map(item => ({
   ]
 }));
 
-const colors = dataset.slice(0, 100).map(item => ({
-  name: ``,
+const colors = dataset.slice(0, 6).map(item => ({
+  name: '',
   position: [
     item.RR_media,
     item.RG_media,
@@ -52,7 +52,6 @@ const containerEl = document.querySelector('#container');
 const selectPresetEl = document.querySelector('#preset');
 
 const setupDendrogram = preset => {
-  console.log({ preset });
   const hierarchicalCluster = (window.hierarchicalCluster = hcluster()
     .distance('euclidean')
     .linkage('avg')
@@ -63,6 +62,7 @@ const setupDendrogram = preset => {
     .append('svg')
     .attr('width', width)
     .attr('height', height)
+    .attr('transform', 'translate(10, 10)')
     .append('g');
 
   const cluster = d3.layout.cluster().size([height, width]);
@@ -97,7 +97,7 @@ const setupDendrogram = preset => {
     .enter()
     .append('path')
     .attr('class', 'link')
-    .attr('stroke', '#AAA')
+    .attr('stroke', 'black')
     .attr('stroke-width', '1.5px')
     .attr('d', elbow);
 
@@ -126,6 +126,70 @@ const setupDendrogram = preset => {
     .text(function (d) {
       return d.children ? '' : d.name;
     });
+
+  const distances = nodes.map(node => node.height);
+  const bestCutoff = findElbowPoint(distances);
+  drawCutoffLine(svg, nodes, bestCutoff);
+  markClusters(svg, nodes, bestCutoff);
+
+  document.querySelector(
+    '#numClusters'
+  ).textContent = `N° de clusters: ${countClusters(nodes, bestCutoff)}`;
+};
+
+const findElbowPoint = distances => {
+  const sortedDistances = distances.sort((a, b) => a - b);
+  let maxDistanceDiff = 0;
+  let bestCutoff = 0;
+
+  for (let i = 1; i < sortedDistances.length - 1; i++) {
+    const distanceDiff = sortedDistances[i + 1] - sortedDistances[i];
+    if (distanceDiff > maxDistanceDiff) {
+      maxDistanceDiff = distanceDiff;
+      bestCutoff = sortedDistances[i];
+    }
+  }
+
+  return bestCutoff;
+};
+
+const drawCutoffLine = (svg, nodes, cutoff) => {
+  const x = d3.scale
+    .linear()
+    .domain(
+      d3.extent(nodes, function (d) {
+        return d.height;
+      })
+    )
+    .range([width, 0]);
+
+  const cutoffX = x(cutoff);
+
+  svg
+    .append('line')
+    .attr('x1', cutoffX)
+    .attr('y1', 0)
+    .attr('x2', cutoffX)
+    .attr('y2', height)
+    .attr('stroke', 'red')
+    .attr('stroke-width', 2);
+};
+
+const markClusters = (svg, nodes, cutoff) => {
+  const clusters = nodes.filter(node => node.height <= cutoff);
+  clusters.forEach(cluster => {
+    svg
+      .append('circle')
+      .attr('cx', cluster.y)
+      .attr('cy', cluster.x)
+      .attr('r', 3)
+      .attr('fill', 'red');
+  });
+};
+
+const countClusters = (nodes, cutoff) => {
+  const clusters = nodes.filter(node => node.height <= cutoff);
+  return clusters.length;
 };
 
 setupDendrogram(presets.dimensions);

@@ -64,6 +64,18 @@ main {
   border: 1px solid black;
 }
 
+.infos {
+  margin-top: 20px;
+  gap: 5px;
+  display: flex;
+  flex-direction: column;
+}
+
+.infos small {
+  border: none;
+  border-bottom: 1px solid black;
+}
+
 #container {
   width: 550px;
   height: 550px;
