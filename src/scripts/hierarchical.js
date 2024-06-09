@@ -1,12 +1,19 @@
 import hcluster from 'hclusterjs';
 import dataset from '../dataset.json' assert { type: 'json' };
 
-const dimensions = dataset.splice(0, 6).map(item => ({
+const width = 500;
+const height = 500;
+
+const containerEl = document.querySelector('#container');
+const selectPresetEl = document.querySelector('#preset');
+const selectSizeEl = document.querySelector('#size');
+
+const dimensions = dataset.map(item => ({
   name: '',
   position: [item.area]
 }));
 
-const shapes = dataset.slice(0, 6).map(item => ({
+const shapes = dataset.map(item => ({
   name: '',
   position: [
     item.fator_forma_1,
@@ -16,7 +23,7 @@ const shapes = dataset.slice(0, 6).map(item => ({
   ]
 }));
 
-const colors = dataset.slice(0, 6).map(item => ({
+const colors = dataset.map(item => ({
   name: '',
   position: [
     item.RR_media,
@@ -46,16 +53,11 @@ const presets = {
   dimensions
 };
 
-const width = 500;
-const height = 500;
-const containerEl = document.querySelector('#container');
-const selectPresetEl = document.querySelector('#preset');
-
-const setupDendrogram = preset => {
+const setupDendrogram = (preset, size = 10) => {
   const hierarchicalCluster = (window.hierarchicalCluster = hcluster()
     .distance('euclidean')
     .linkage('avg')
-    .data(preset));
+    .data(preset.slice(0, +size)));
 
   const svg = d3
     .select(containerEl)
@@ -195,8 +197,17 @@ const countClusters = (nodes, cutoff) => {
 setupDendrogram(presets.dimensions);
 
 selectPresetEl.addEventListener('change', e => {
+  const size = document.querySelector('#size').value;
   const { value } = e.target;
 
   containerEl.innerHTML = '';
-  setupDendrogram(presets[value]);
+  setupDendrogram(presets[value], size);
+});
+
+selectSizeEl.addEventListener('change', e => {
+  const preset = document.querySelector('#preset').value;
+  const { value } = e.target;
+
+  containerEl.innerHTML = '';
+  setupDendrogram(presets[preset], value);
 });
