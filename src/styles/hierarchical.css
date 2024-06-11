@@ -88,7 +88,7 @@ main {
   flex-direction: column;
 }
 
-#container {
+#dendrogram {
   width: 550px;
   height: 550px;
   position: relative;

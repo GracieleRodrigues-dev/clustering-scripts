@@ -4,9 +4,10 @@ import dataset from '../dataset.json' assert { type: 'json' };
 const width = 500;
 const height = 500;
 
-const containerEl = document.querySelector('#container');
+const dendrogramEl = document.querySelector('#dendrogram');
 const selectSizeEl = document.querySelector('#select-size');
 const selectPresetEl = document.querySelector('#select-preset');
+const nClustersLabelEl = document.querySelector('#n-clusters');
 
 const dimensions = dataset.map(item => ({
   name: '',
@@ -60,7 +61,7 @@ const setupDendrogram = (preset, size = 10) => {
     .data(preset.slice(0, +size)));
 
   const svg = d3
-    .select(containerEl)
+    .select(dendrogramEl)
     .append('svg')
     .attr('width', width)
     .attr('height', height)
@@ -134,9 +135,10 @@ const setupDendrogram = (preset, size = 10) => {
   drawCutoffLine(svg, nodes, bestCutoff);
   markClusters(svg, nodes, bestCutoff);
 
-  document.querySelector(
-    '#numClusters'
-  ).textContent = `N° de clusters: ${countClusters(nodes, bestCutoff)}`;
+  nClustersLabelEl.textContent = `N° de clusters: ${countClusters(
+    nodes,
+    bestCutoff
+  )}`;
 };
 
 const findElbowPoint = distances => {
@@ -200,7 +202,7 @@ selectPresetEl.addEventListener('change', e => {
   const size = selectSizeEl.value;
   const { value } = e.target;
 
-  containerEl.innerHTML = '';
+  dendrogramEl.innerHTML = '';
   setupDendrogram(presets[value], size);
 });
 
@@ -208,6 +210,6 @@ selectSizeEl.addEventListener('change', e => {
   const preset = selectPresetEl.value;
   const { value } = e.target;
 
-  containerEl.innerHTML = '';
+  dendrogramEl.innerHTML = '';
   setupDendrogram(presets[preset], value);
 });
