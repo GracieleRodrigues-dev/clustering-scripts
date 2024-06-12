@@ -5,12 +5,13 @@ const width = 600;
 const height = 600;
 const loadingEl = document.querySelector('#loading');
 const dendrogramEl = document.querySelector('#dendrogram');
-const elbowCurveEl = document.querySelector('#elbow-curve');
+// const elbowCurveEl = document.querySelector('#elbow-curve');
 const inputSizeEl = document.querySelector('#input-size');
 const selectPresetEl = document.querySelector('#select-preset');
 const selectLinkageEl = document.querySelector('#select-linkage');
 const selectDistanceEl = document.querySelector('#select-distance');
 const buttonExecuteEl = document.querySelector('#button-execute');
+const nTotalClustersLabelEl = document.querySelector('#n-total-clusters');
 const nClustersLabelEl = document.querySelector('#n-clusters');
 
 const dendrogram = {
@@ -199,7 +200,12 @@ const setup = () => {
         drawCutoffLine(svg, nodes, bestCutoff);
         markClusters(svg, nodes, bestCutoff);
 
-        nClustersLabelEl.textContent = `N° de clusters: ${countClusters(
+        nClustersLabelEl.textContent = `N° ideal de clusters: ${countClusters(
+          nodes,
+          bestCutoff
+        )}`;
+
+        nTotalClustersLabelEl.textContent = `N° total de clusters: ${countTotalClusters(
           nodes,
           bestCutoff
         )}`;
@@ -267,124 +273,129 @@ const markClusters = (svg, nodes, cutoff) => {
 
 const countClusters = (nodes, cutoff) => {
   const clusterCutOff = nodes.find(node => node.height == cutoff);
-  console.log('clusters', clusterCutOff.children);
   return clusterCutOff.children.length;
 };
 
-const euclideanDistance = (a, b) => {
-  return Math.sqrt(a.reduce((sum, val, i) => sum + Math.pow(val - b[i], 2), 0));
+const countTotalClusters = (nodes, cutoff) => {
+  const clusters = nodes.filter(node => node.height <= cutoff);
+  return clusters.length;
 };
 
-const calculateElbowCurve = async maxClusters => {
-  const wcss = [];
-  const preset = presets[selectPresetEl.value].slice(0, inputSizeEl.value);
+// const euclideanDistance = (a, b) => {
+//   return Math.sqrt(a.reduce((sum, val, i) => sum + Math.pow(val - b[i], 2), 0));
+// };
 
-  for (let k = 2; k <= preset.length; k++) {
-    await createHierarchicalCluster().then(hierarchicalCluster => {
-      const clusters = hierarchicalCluster.getClusters(k);
-      const sumOfSquares = clusters.reduce((sum, cluster) => {
-        const centroid = cluster.reduce((centroid, point) => {
-          point.position.forEach((val, i) => {
-            centroid[i] += val;
-          });
-          return centroid;
-        }, new Array(cluster[0].position.length).fill(0));
+// const calculateElbowCurve = async maxClusters => {
+//   const wcss = [];
+//   const preset = presets[selectPresetEl.value].slice(0, inputSizeEl.value);
 
-        centroid.forEach((value, i) => {
-          centroid[i] /= cluster.length;
-        });
+//   for (let k = 2; k <= preset.length; k++) {
+//     await createHierarchicalCluster().then(hierarchicalCluster => {
+//       const clusters = hierarchicalCluster.getClusters(k);
+//       const sumOfSquares = clusters.reduce((sum, cluster) => {
+//         const centroid = cluster.reduce((centroid, point) => {
+//           point.position.forEach((val, i) => {
+//             centroid[i] += val;
+//           });
+//           return centroid;
+//         }, new Array(cluster[0].position.length).fill(0));
 
-        const clusterSumOfSquares = cluster.reduce((sum, point) => {
-          return sum + euclideanDistance(point.position, centroid);
-        }, 0);
+//         centroid.forEach((value, i) => {
+//           centroid[i] /= cluster.length;
+//         });
 
-        return sum + clusterSumOfSquares;
-      }, 0);
-      wcss.push({ k, sumOfSquares });
-    });
-  }
+//         const clusterSumOfSquares = cluster.reduce((sum, point) => {
+//           return sum + euclideanDistance(point.position, centroid);
+//         }, 0);
 
-  const sortedDistances = [...wcss.map(d => d.sumOfSquares)].sort(
-    (a, b) => a - b
-  );
-  let maxDistanceDiff = 0;
-  let bestCutoff = 0;
+//         return sum + clusterSumOfSquares;
+//       }, 0);
+//       wcss.push({ k, sumOfSquares });
+//     });
+//   }
 
-  for (let i = 1; i < sortedDistances.length - 1; i++) {
-    const distanceDiff = sortedDistances[i + 1] - sortedDistances[i];
-    if (distanceDiff > maxDistanceDiff) {
-      maxDistanceDiff = distanceDiff;
-      bestCutoff = sortedDistances[i];
-    }
-  }
+//   const sortedDistances = [...wcss.map(d => d.sumOfSquares)].sort(
+//     (a, b) => a - b
+//   );
+//   let maxDistanceDiff = 0;
+//   let bestCutoff = 0;
 
-  plotElbowCurve(wcss, bestCutoff);
-};
+//   for (let i = 1; i < sortedDistances.length - 1; i++) {
+//     const distanceDiff = sortedDistances[i + 1] - sortedDistances[i];
+//     if (distanceDiff > maxDistanceDiff) {
+//       maxDistanceDiff = distanceDiff;
+//       bestCutoff = sortedDistances[i];
+//     }
+//   }
 
-const plotElbowCurve = (wcss, elbowPoint) => {
-  const margin = { top: 20, right: 30, bottom: 30, left: 40 },
-    width = 500 - margin.left - margin.right,
-    height = 300 - margin.top - margin.bottom;
+//   plotElbowCurve(wcss, bestCutoff);
+// };
 
-  const x = d3.scale.linear().domain([1, wcss.length]).range([0, width]);
+// const plotElbowCurve = (wcss, elbowPoint) => {
+//   const margin = { top: 20, right: 30, bottom: 30, left: 40 },
+//     width = 500 - margin.left - margin.right,
+//     height = 300 - margin.top - margin.bottom;
 
-  const y = d3.scale
-    .linear()
-    .domain([0, d3.max(wcss, d => d.sumOfSquares)])
-    .range([height, 0]);
+//   const x = d3.scale.linear().domain([1, wcss.length]).range([0, width]);
 
-  const xAxis = d3.svg.axis().scale(x).orient('bottom');
+//   const y = d3.scale
+//     .linear()
+//     .domain([0, d3.max(wcss, d => d.sumOfSquares)])
+//     .range([height, 0]);
 
-  const yAxis = d3.svg.axis().scale(y).orient('left');
+//   const xAxis = d3.svg.axis().scale(x).orient('bottom');
 
-  const line = d3.svg
-    .line()
-    .x(d => x(d.k))
-    .y(d => y(d.sumOfSquares));
+//   const yAxis = d3.svg.axis().scale(y).orient('left');
 
-  const svg = d3
-    .select('#elbow-curve')
-    .html('') // Limpa o gráfico anterior
-    .append('svg')
-    .attr('width', width + margin.left + margin.right)
-    .attr('height', height + margin.top + margin.bottom)
-    .append('g')
-    .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+//   const line = d3.svg
+//     .line()
+//     .x(d => x(d.k))
+//     .y(d => y(d.sumOfSquares));
 
-  svg
-    .append('g')
-    .attr('class', 'x axis')
-    .attr('transform', 'translate(0,' + height + ')')
-    .call(xAxis)
-    .append('text')
-    .attr('x', width)
-    .attr('dy', '-.71em')
-    .style('text-anchor', 'end')
-    .text('Number of Clusters (k)');
+//   const svg = d3
+//     .select('#elbow-curve')
+//     .html('') // Limpa o gráfico anterior
+//     .append('svg')
+//     .attr('width', width + margin.left + margin.right)
+//     .attr('height', height + margin.top + margin.bottom)
+//     .append('g')
+//     .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-  svg
-    .append('g')
-    .attr('class', 'y axis')
-    .call(yAxis)
-    .append('text')
-    .attr('transform', 'rotate(-90)')
-    .attr('y', 6)
-    .attr('dy', '.71em')
-    .style('text-anchor', 'end')
-    .text('Sum of Squares');
+//   svg
+//     .append('g')
+//     .attr('class', 'x axis')
+//     .attr('transform', 'translate(0,' + height + ')')
+//     .call(xAxis)
+//     .append('text')
+//     .attr('x', width)
+//     .attr('dy', '-.71em')
+//     .style('text-anchor', 'end')
+//     .text('Number of Clusters (k)');
 
-  svg.append('path').datum(wcss).attr('class', 'line').attr('d', line);
+//   svg
+//     .append('g')
+//     .attr('class', 'y axis')
+//     .call(yAxis)
+//     .append('text')
+//     .attr('transform', 'rotate(-90)')
+//     .attr('y', 6)
+//     .attr('dy', '.71em')
+//     .style('text-anchor', 'end')
+//     .text('Sum of Squares');
 
-  const elbowIndex = wcss.findIndex(d => d.sumOfSquares === elbowPoint);
-  if (elbowIndex !== -1) {
-    svg
-      .append('circle')
-      .attr('cx', x(wcss[elbowIndex].k))
-      .attr('cy', y(elbowPoint))
-      .attr('r', 4)
-      .style('fill', 'red');
-  }
-};
+//   svg.append('path').datum(wcss).attr('class', 'line').attr('d', line);
+
+//   const elbowIndex = wcss.findIndex(d => d.sumOfSquares === elbowPoint);
+//   if (elbowIndex !== -1) {
+//     svg
+//       .append('circle')
+//       .attr('cx', x(wcss[elbowIndex].k))
+//       .attr('cy', y(elbowPoint))
+//       .attr('r', 4)
+//       .style('fill', 'red');
+//   }
+// };
+
 setup();
 buttonExecuteEl.addEventListener('click', setup);
 
