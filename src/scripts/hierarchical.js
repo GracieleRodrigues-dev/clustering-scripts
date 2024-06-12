@@ -5,12 +5,28 @@ const width = 600;
 const height = 600;
 const loadingEl = document.querySelector('#loading');
 const dendrogramEl = document.querySelector('#dendrogram');
+const elbowCurveEl = document.querySelector('#elbow-curve');
 const inputSizeEl = document.querySelector('#input-size');
 const selectPresetEl = document.querySelector('#select-preset');
 const selectLinkageEl = document.querySelector('#select-linkage');
 const selectDistanceEl = document.querySelector('#select-distance');
 const buttonExecuteEl = document.querySelector('#button-execute');
 const nClustersLabelEl = document.querySelector('#n-clusters');
+
+const dendrogram = {
+  show: () => (dendrogramEl.style.display = 'flex'),
+  hidde: () => (dendrogramEl.style.display = 'none')
+};
+
+const elbowCurve = {
+  show: () => (elbowCurve.style.display = 'flex'),
+  hidde: () => (elbowCurve.style.display = 'none')
+};
+
+const loading = {
+  show: () => (loadingEl.style.display = 'flex'),
+  hidde: () => (loadingEl.style.display = 'none')
+};
 
 const dimensions = dataset.map(item => ({
   name: '',
@@ -57,12 +73,6 @@ const presets = {
   dimensions
 };
 
-const hiddeLoading = () => (loadingEl.style.display = 'none');
-const showLoading = () => (loadingEl.style.display = 'flex');
-
-const showDengrogram = () => (dendrogramEl.style.display = 'flex');
-const hiddeDengrogram = () => (dendrogramEl.style.display = 'none');
-
 const disableFilters = (disabled = false) => {
   inputSizeEl.disabled = disabled;
   selectPresetEl.disabled = disabled;
@@ -93,22 +103,21 @@ const createHierarchicalCluster = () => {
 
 const setup = () => {
   if (inputSizeEl.value > 100) {
-    hiddeDengrogram();
-    showLoading();
+    dendrogram.hidde();
+    loading.show();
     disableFilters(true);
   }
 
   setTimeout(() => {
     createHierarchicalCluster()
       .then(hierarchicalCluster => {
-        hiddeLoading();
-        showDengrogram();
+        loading.hidde();
+        dendrogram.show();
         disableFilters(false);
-
-        dendrogramEl.innerHTML = '';
 
         const svg = d3
           .select(dendrogramEl)
+          .html('')
           .append('svg')
           .attr('width', width)
           .attr('height', height)
@@ -194,17 +203,20 @@ const setup = () => {
           nodes,
           bestCutoff
         )}`;
+
+        // calculateElbowCurve(nodes.length);
       })
       .catch(error => {
         console.error('Erro no processamento!', error);
-        hiddeLoading();
-        hiddeDengrogram();
+        loading.hidde();
+        dendrogram.hidde();
         disableFilters(false);
       });
   }, 0);
 };
+
 const findElbowPoint = distances => {
-  const sortedDistances = distances.sort((a, b) => a - b);
+  const sortedDistances = distances.slice().sort((a, b) => a - b);
   let maxDistanceDiff = 0;
   let bestCutoff = 0;
 
@@ -258,6 +270,120 @@ const countClusters = (nodes, cutoff) => {
   return clusters.length;
 };
 
+const euclideanDistance = (a, b) => {
+  return Math.sqrt(a.reduce((sum, val, i) => sum + Math.pow(val - b[i], 2), 0));
+};
+
+const calculateElbowCurve = async maxClusters => {
+  const wcss = [];
+  const preset = presets[selectPresetEl.value].slice(0, inputSizeEl.value);
+
+  for (let k = 2; k <= preset.length; k++) {
+    await createHierarchicalCluster().then(hierarchicalCluster => {
+      const clusters = hierarchicalCluster.getClusters(k);
+      const sumOfSquares = clusters.reduce((sum, cluster) => {
+        const centroid = cluster.reduce((centroid, point) => {
+          point.position.forEach((val, i) => {
+            centroid[i] += val;
+          });
+          return centroid;
+        }, new Array(cluster[0].position.length).fill(0));
+
+        centroid.forEach((value, i) => {
+          centroid[i] /= cluster.length;
+        });
+
+        const clusterSumOfSquares = cluster.reduce((sum, point) => {
+          return sum + euclideanDistance(point.position, centroid);
+        }, 0);
+
+        return sum + clusterSumOfSquares;
+      }, 0);
+      wcss.push({ k, sumOfSquares });
+    });
+  }
+
+  const sortedDistances = [...wcss.map(d => d.sumOfSquares)].sort(
+    (a, b) => a - b
+  );
+  let maxDistanceDiff = 0;
+  let bestCutoff = 0;
+
+  for (let i = 1; i < sortedDistances.length - 1; i++) {
+    const distanceDiff = sortedDistances[i + 1] - sortedDistances[i];
+    if (distanceDiff > maxDistanceDiff) {
+      maxDistanceDiff = distanceDiff;
+      bestCutoff = sortedDistances[i];
+    }
+  }
+
+  plotElbowCurve(wcss, bestCutoff);
+};
+
+const plotElbowCurve = (wcss, elbowPoint) => {
+  const margin = { top: 20, right: 30, bottom: 30, left: 40 },
+    width = 500 - margin.left - margin.right,
+    height = 300 - margin.top - margin.bottom;
+
+  const x = d3.scale.linear().domain([1, wcss.length]).range([0, width]);
+
+  const y = d3.scale
+    .linear()
+    .domain([0, d3.max(wcss, d => d.sumOfSquares)])
+    .range([height, 0]);
+
+  const xAxis = d3.svg.axis().scale(x).orient('bottom');
+
+  const yAxis = d3.svg.axis().scale(y).orient('left');
+
+  const line = d3.svg
+    .line()
+    .x(d => x(d.k))
+    .y(d => y(d.sumOfSquares));
+
+  const svg = d3
+    .select('#elbow-curve')
+    .html('') // Limpa o gráfico anterior
+    .append('svg')
+    .attr('width', width + margin.left + margin.right)
+    .attr('height', height + margin.top + margin.bottom)
+    .append('g')
+    .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+  svg
+    .append('g')
+    .attr('class', 'x axis')
+    .attr('transform', 'translate(0,' + height + ')')
+    .call(xAxis)
+    .append('text')
+    .attr('x', width)
+    .attr('dy', '-.71em')
+    .style('text-anchor', 'end')
+    .text('Number of Clusters (k)');
+
+  svg
+    .append('g')
+    .attr('class', 'y axis')
+    .call(yAxis)
+    .append('text')
+    .attr('transform', 'rotate(-90)')
+    .attr('y', 6)
+    .attr('dy', '.71em')
+    .style('text-anchor', 'end')
+    .text('Sum of Squares');
+
+  svg.append('path').datum(wcss).attr('class', 'line').attr('d', line);
+
+  const elbowIndex = wcss.findIndex(d => d.sumOfSquares === elbowPoint);
+  if (elbowIndex !== -1) {
+    svg
+      .append('circle')
+      .attr('cx', x(wcss[elbowIndex].k))
+      .attr('cy', y(elbowPoint))
+      .attr('r', 4)
+      .style('fill', 'red');
+  }
+};
 setup();
 buttonExecuteEl.addEventListener('click', setup);
 

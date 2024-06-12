@@ -47,6 +47,7 @@
             <input id="input-size" maxlength="3" value="25" />
           </div>
           <button id="button-execute">Executar</button>
+          <button id="button-execute">Gerar Métricas</button>
         </div>
       </section>
       <section class="body">
@@ -54,7 +55,7 @@
           id="dendrogram"
           class="animate__animated animate__fadeIn animate__faster"
         ></div>
-        <div id="elbow-curve"></div>
+        <!-- <div id="elbow-curve"></div> -->
         <div
           id="loading"
           class="animate__animated animate__fadeIn animate__faster"
@@ -114,6 +115,7 @@
         </div>
       </section>
     </main>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="http://d3js.org/d3.v3.min.js"></script>
     <script type="module" src="./scripts/hierarchical.js"></script>
   </body>
