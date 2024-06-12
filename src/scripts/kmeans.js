@@ -164,6 +164,8 @@ document.addEventListener('DOMContentLoaded', () => {
   function createLegend(dataset, color) {
     const legendContainer = d3.select('#legend').html(''); // Limpa a legenda anterior
   
+    console.log(dataset);
+    
     // Agrupa os dados por cluster e por classe
     const clusterGroups = {};
     dataset.forEach(d => {

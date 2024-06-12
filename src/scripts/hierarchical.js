@@ -267,6 +267,7 @@ const markClusters = (svg, nodes, cutoff) => {
 
 const countClusters = (nodes, cutoff) => {
   const clusterCutOff = nodes.find(node => node.height == cutoff);
+  console.log('clusters', clusterCutOff.children);
   return clusterCutOff.children.length;
 };
 
