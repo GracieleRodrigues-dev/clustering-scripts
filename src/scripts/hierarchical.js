@@ -3,10 +3,13 @@ import dataset from '../dataset.json' assert { type: 'json' };
 
 const width = 500;
 const height = 500;
-
+const loadingEl = document.querySelector('#loading');
 const dendrogramEl = document.querySelector('#dendrogram');
-const selectSizeEl = document.querySelector('#select-size');
+const inputSizeEl = document.querySelector('#input-size');
 const selectPresetEl = document.querySelector('#select-preset');
+const selectLinkageEl = document.querySelector('#select-linkage');
+const selectDistanceEl = document.querySelector('#select-distance');
+const buttonExecuteEl = document.querySelector('#button-execute');
 const nClustersLabelEl = document.querySelector('#n-clusters');
 
 const dimensions = dataset.map(item => ({
@@ -54,93 +57,151 @@ const presets = {
   dimensions
 };
 
-const setupDendrogram = (preset, size = 10) => {
-  const hierarchicalCluster = (window.hierarchicalCluster = hcluster()
-    .distance('euclidean')
-    .linkage('avg')
-    .data(preset.slice(0, +size)));
+const hiddeLoading = () => (loadingEl.style.display = 'none');
+const showLoading = () => (loadingEl.style.display = 'flex');
 
-  const svg = d3
-    .select(dendrogramEl)
-    .append('svg')
-    .attr('width', width)
-    .attr('height', height)
-    .attr('transform', 'translate(10, 10)')
-    .append('g');
+const showDengrogram = () => (dendrogramEl.style.display = 'flex');
+const hiddeDengrogram = () => (dendrogramEl.style.display = 'none');
 
-  const cluster = d3.layout.cluster().size([height, width]);
-  d3.svg.diagonal().projection(function (d) {
-    return [d.y, d.x];
-  });
-
-  const nodes = cluster.nodes(hierarchicalCluster.tree());
-  const links = cluster.links(nodes);
-
-  const elbow = function (d, i) {
-    return (
-      'M' + d.source.y + ',' + d.source.x + 'V' + d.target.x + 'H' + d.target.y
-    );
-  };
-
-  const x = d3.scale
-    .linear()
-    .domain(
-      d3.extent(nodes, function (d) {
-        return d.height;
-      })
-    )
-    .range([width, 0]);
-  nodes.forEach(function (d, ndx) {
-    d.y = x(d.height);
-  });
-
-  svg
-    .selectAll('.link')
-    .data(links)
-    .enter()
-    .append('path')
-    .attr('class', 'link')
-    .attr('stroke', 'black')
-    .attr('stroke-width', '1.5px')
-    .attr('d', elbow);
-
-  const node = svg
-    .selectAll('.node')
-    .data(nodes)
-    .enter()
-    .append('g')
-    .attr('class', 'node')
-    .attr('transform', function (d) {
-      return 'translate(' + d.y + ',' + d.x + ')';
-    });
-  node
-    .append('circle')
-    .style('stroke', 'none')
-    .style('fill', function (d) {
-      return d.position ? 'rgb(' + d.position.join(',') + ')' : '#777';
-    })
-    .attr('r', function (d) {
-      return d.children ? 1.5 : 5.5;
-    });
-  node
-    .append('text')
-    .attr('dx', 6)
-    .attr('dy', 2)
-    .text(function (d) {
-      return d.children ? '' : d.name;
-    });
-
-  const distances = nodes.map(node => node.height);
-  const bestCutoff = findElbowPoint(distances);
-  drawCutoffLine(svg, nodes, bestCutoff);
-  markClusters(svg, nodes, bestCutoff);
-
-  nClustersLabelEl.textContent = `N° de clusters: ${countClusters(
-    nodes,
-    bestCutoff
-  )}`;
+const disableFilters = (disabled = false) => {
+  inputSizeEl.disabled = disabled;
+  selectPresetEl.disabled = disabled;
+  selectLinkageEl.disabled = disabled;
+  selectDistanceEl.disabled = disabled;
+  buttonExecuteEl.disabled = disabled;
 };
 
+const createHierarchicalCluster = () => {
+  return new Promise((resolve, reject) => {
+    try {
+      const size = +inputSizeEl.value;
+      const linkage = selectLinkageEl.value;
+      const distance = selectDistanceEl.value;
+      const preset = presets[selectPresetEl.value].slice(0, size);
+
+      const hierarchicalCluster = (window.hierarchicalCluster = hcluster()
+        .distance(distance)
+        .linkage(linkage)
+        .data(preset));
+
+      resolve(hierarchicalCluster);
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
+const setup = () => {
+  hiddeDengrogram();
+  showLoading();
+  disableFilters(true);
+
+  setTimeout(() => {
+    createHierarchicalCluster()
+      .then(hierarchicalCluster => {
+        hiddeLoading();
+        showDengrogram();
+        disableFilters(false);
+
+        dendrogramEl.innerHTML = '';
+
+        const svg = d3
+          .select(dendrogramEl)
+          .append('svg')
+          .attr('width', width)
+          .attr('height', height)
+          .attr('transform', 'translate(10, 10)')
+          .append('g');
+
+        const cluster = d3.layout.cluster().size([height, width]);
+        d3.svg.diagonal().projection(function (d) {
+          return [d.y, d.x];
+        });
+
+        const nodes = cluster.nodes(hierarchicalCluster.tree());
+        const links = cluster.links(nodes);
+
+        const elbow = function (d, i) {
+          return (
+            'M' +
+            d.source.y +
+            ',' +
+            d.source.x +
+            'V' +
+            d.target.x +
+            'H' +
+            d.target.y
+          );
+        };
+
+        const x = d3.scale
+          .linear()
+          .domain(
+            d3.extent(nodes, function (d) {
+              return d.height;
+            })
+          )
+          .range([width, 0]);
+        nodes.forEach(function (d, ndx) {
+          d.y = x(d.height);
+        });
+
+        svg
+          .selectAll('.link')
+          .data(links)
+          .enter()
+          .append('path')
+          .attr('class', 'link')
+          .attr('stroke', 'black')
+          .attr('stroke-width', '1.5px')
+          .attr('d', elbow);
+
+        const node = svg
+          .selectAll('.node')
+          .data(nodes)
+          .enter()
+          .append('g')
+          .attr('class', 'node')
+          .attr('transform', function (d) {
+            return 'translate(' + d.y + ',' + d.x + ')';
+          });
+
+        node
+          .append('circle')
+          .style('stroke', 'none')
+          .style('fill', function (d) {
+            return d.position ? 'rgb(' + d.position.join(',') + ')' : '#777';
+          })
+          .attr('r', function (d) {
+            return d.children ? 1.5 : 5.5;
+          });
+
+        node
+          .append('text')
+          .attr('dx', 6)
+          .attr('dy', 2)
+          .text(function (d) {
+            return d.children ? '' : d.name;
+          });
+
+        const distances = nodes.map(node => node.height);
+        const bestCutoff = findElbowPoint(distances);
+        drawCutoffLine(svg, nodes, bestCutoff);
+        markClusters(svg, nodes, bestCutoff);
+
+        nClustersLabelEl.textContent = `N° de clusters: ${countClusters(
+          nodes,
+          bestCutoff
+        )}`;
+      })
+      .catch(error => {
+        console.error('Erro no processamento!', error);
+        hiddeLoading();
+        hiddeDengrogram();
+        disableFilters(false);
+      });
+  }, 0);
+};
 const findElbowPoint = distances => {
   const sortedDistances = distances.sort((a, b) => a - b);
   let maxDistanceDiff = 0;
@@ -196,20 +257,25 @@ const countClusters = (nodes, cutoff) => {
   return clusters.length;
 };
 
-setupDendrogram(presets.dimensions);
+setup();
+buttonExecuteEl.addEventListener('click', setup);
 
-selectPresetEl.addEventListener('change', e => {
-  const size = selectSizeEl.value;
-  const { value } = e.target;
+document.querySelector('#input-size').addEventListener('input', function (e) {
+  const input = e.target;
+  let value = input.value;
 
-  dendrogramEl.innerHTML = '';
-  setupDendrogram(presets[value], size);
-});
+  value = value.replace(/[^0-9]/g, '');
 
-selectSizeEl.addEventListener('change', e => {
-  const preset = selectPresetEl.value;
-  const { value } = e.target;
+  if (value) {
+    const numericValue = parseInt(value, 10);
+    if (numericValue < 1) {
+      value = '1';
+    } else if (numericValue > dataset.length) {
+      value = `${dataset.length}`;
+    } else {
+      value = numericValue.toString();
+    }
+  }
 
-  dendrogramEl.innerHTML = '';
-  setupDendrogram(presets[preset], value);
+  input.value = value;
 });

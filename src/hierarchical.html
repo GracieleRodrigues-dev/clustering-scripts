@@ -24,24 +24,32 @@
             </select>
           </div>
           <div class="form-control">
-            <span>Tamanho</span>
-            <select id="select-size">
-              <option value="25">25</option>
-              <option value="50">50</option>
-              <option value="100">100</option>
-              <option value="200">200</option>
-              <option value="300">300</option>
-              <option value="400">400</option>
-              <option value="500">500</option>
-              <option value="600">600</option>
-              <option value="700">700</option>
-              <option value="800">800</option>
+            <span>Distância</span>
+            <select id="select-distance">
+              <option value="euclidean">Euclideana</option>
+              <option value="angular">Angular</option>
             </select>
           </div>
+          <div class="form-control">
+            <span>Link</span>
+            <select id="select-linkage">
+              <option value="avg">Avg</option>
+              <option value="min">Min</option>
+              <option value="max">Max</option>
+            </select>
+          </div>
+          <div class="form-control">
+            <span>N° Linhas</span>
+            <input id="input-size" maxlength="3" value="25" />
+          </div>
+          <button id="button-execute">Executar</button>
         </div>
       </section>
       <section class="body">
         <div id="dendrogram"></div>
+        <div id="loading">
+          <span>Carregando...</span>
+        </div>
         <div class="presets">
           <h5>Presets</h5>
           <details>
@@ -90,8 +98,6 @@
           </details>
           <div class="infos">
             <h5>Dados</h5>
-            <small>Distância: Euclidiana</small>
-            <small>Link: AVG (Average Linkage)</small>
             <small id="n-clusters">Número de clusters: 10</small>
           </div>
         </div>
