@@ -1,4 +1,6 @@
-import dataset from '../dataset.json' assert { type: 'json' };
+
+import dataset from '../data/dataset.json' assert { type: 'json' };
+const fs = require('fs');
 
 export const getKmeansDataset = (x, y) => {
   if (!x || !y) return [];
@@ -19,3 +21,26 @@ export const createDatasetFromPresets = selectedProperties => {
     return selectedProperties.map(prop => item[prop]);
   });
 };
+
+export const addLog = function(algoritmo, input, clusters) {
+  debugger;
+  const arquivo = '../data/log.json';
+
+  let objeto = {
+    timestamp: Date.now(),
+    algoritmo: algoritmo,
+    input: input,
+    clusters: clusters
+  };
+
+  let conteudo;
+
+  try {
+    conteudo = JSON.parse(fs.readFileSync(arquivo, 'utf8'));
+  } catch (err) {
+    conteudo = [];
+  }
+  conteudo.push(objeto);
+
+  fs.writeFileSync(arquivo, JSON.stringify(conteudo, null, 2), 'utf8');
+}

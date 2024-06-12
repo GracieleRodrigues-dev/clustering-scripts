@@ -1,5 +1,5 @@
-import datasetOriginal from '../dataset.json';
-import { createDatasetFromPresets } from '../utils/functions.js';
+import datasetOriginal from '../data/dataset.json';
+import { createDatasetFromPresets, addLog } from '../utils/functions.js';
 import { presets } from './presets.js';
 
 //vamos carregar as opções dos presets
@@ -40,6 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   let kmeansModel;
+  let atualOptions;
 
   const width = 960;
   const height = 960;
@@ -67,11 +68,13 @@ document.addEventListener('DOMContentLoaded', () => {
       'threshold': threshold,
     };
 
+    atualOptions = options;
+
     const data = createDatasetFromPresets(selectedProperties);
 
     console.log("Iniciando o kmeans");
     console.log("Agrupando por : " + selectedPreset + " " + selectedProperties);
-    console.log("Dados para K-Means:", data);
+    // console.log("Dados para K-Means:", data);
     kmeansModel = ml5.kmeans(data, options, () => modelReady(selectedProperties));
   }
 
@@ -176,6 +179,8 @@ document.addEventListener('DOMContentLoaded', () => {
       clusterGroups[cluster][classe]++;
       clusterGroups[cluster].total++; // Incrementa o contador total
     });
+
+    // addLog('K-Means', atualOptions, clusterGroups);
   
     // Cria os elementos da legenda
     Object.keys(clusterGroups).forEach(cluster => {
