@@ -1,8 +1,8 @@
 import hcluster from 'hclusterjs';
 import dataset from '../dataset.json' assert { type: 'json' };
 
-const width = 500;
-const height = 500;
+const width = 600;
+const height = 600;
 const loadingEl = document.querySelector('#loading');
 const dendrogramEl = document.querySelector('#dendrogram');
 const inputSizeEl = document.querySelector('#input-size');
@@ -92,9 +92,11 @@ const createHierarchicalCluster = () => {
 };
 
 const setup = () => {
-  hiddeDengrogram();
-  showLoading();
-  disableFilters(true);
+  if (inputSizeEl.value > 100) {
+    hiddeDengrogram();
+    showLoading();
+    disableFilters(true);
+  }
 
   setTimeout(() => {
     createHierarchicalCluster()
@@ -110,7 +112,6 @@ const setup = () => {
           .append('svg')
           .attr('width', width)
           .attr('height', height)
-          .attr('transform', 'translate(10, 10)')
           .append('g');
 
         const cluster = d3.layout.cluster().size([height, width]);

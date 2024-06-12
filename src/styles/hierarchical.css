@@ -9,13 +9,15 @@ html,
 
 main {
   width: 100vw;
-  height: 100vh;
+  min-height: 100vh;
   gap: 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   background-color: #eeee;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .header {
@@ -99,28 +101,27 @@ main {
 }
 
 #dendrogram {
-  width: 550px;
-  height: 550px;
+  width: 630px;
+  height: 630px;
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
+  border-radius: 0px;
   border: 1px solid black;
   background-color: white;
 }
 
 #loading {
-  width: 550px;
-  height: 550px;
+  width: 630px;
+  height: 630px;
   display: none;
-  transition: 0.3s;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   color: white;
-  border-radius: 8px;
+  border-radius: 0px;
   background-color: black;
 }
 

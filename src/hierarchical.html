@@ -9,6 +9,10 @@
       type="text/css"
     />
     <link rel="stylesheet" href="./styles/hierarchical.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+    />
   </head>
   <body>
     <main>
@@ -46,8 +50,15 @@
         </div>
       </section>
       <section class="body">
-        <div id="dendrogram"></div>
-        <div id="loading">
+        <div
+          id="dendrogram"
+          class="animate__animated animate__fadeIn animate__faster"
+        ></div>
+        <div id="elbow-curve"></div>
+        <div
+          id="loading"
+          class="animate__animated animate__fadeIn animate__faster"
+        >
           <span>Carregando...</span>
         </div>
         <div class="presets">
