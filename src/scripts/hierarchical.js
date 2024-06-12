@@ -266,8 +266,8 @@ const markClusters = (svg, nodes, cutoff) => {
 };
 
 const countClusters = (nodes, cutoff) => {
-  const clusters = nodes.filter(node => node.height <= cutoff);
-  return clusters.length;
+  const clusterCutOff = nodes.find(node => node.height == cutoff);
+  return clusterCutOff.children.length;
 };
 
 const euclideanDistance = (a, b) => {
