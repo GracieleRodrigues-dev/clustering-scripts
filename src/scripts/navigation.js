@@ -1,64 +1,56 @@
-document.addEventListener('DOMContentLoaded', function() {
-
-    document.getElementById('btn-kmeans').addEventListener('click', function() {
-        setActiveButton(this);
-        loadContent('kmeans');
-    });
-
-    document.getElementById('btn-hierarchical').addEventListener('click', function() {
-        setActiveButton(this);
-        loadContent('hierarchical');
-    });
-
-    document.getElementById('btn-compare').addEventListener('click', function() {
-        setActiveButton(this);
-        loadContent('compare');
-    });
-
-    function setActiveButton(button) {
-        document.querySelectorAll('.nav-button, .compare-button').forEach(btn => {
-            btn.classList.remove('active');
+function loadPage(url) {
+    return fetch(url)
+      .then(response => response.text())
+      .then(html => {
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+        const scriptElements = tempDiv.querySelectorAll('script');
+        const scriptsToLoad = [];
+  
+        scriptElements.forEach(script => {
+          if (script.src) {
+            scriptsToLoad.push(loadScript(script.src));
+          } else {
+            const inlineScript = document.createElement('script');
+            inlineScript.innerHTML = script.innerHTML;
+            document.body.appendChild(inlineScript);
+          }
         });
-        button.classList.add('active');
-    }
-
-    function loadContent(page) {
-        fetch(`${page}.html`)
-            .then(response => response.text())
-            .then(html => {
-                document.getElementById('divContent').innerHTML = html;
-                loadScriptsForPage(`./clustering/${page}.js`);
-            })
-            .catch(error => {
-                console.error('Error loading page:', error);
+  
+        document.querySelector('main').innerHTML = tempDiv.querySelector('main').innerHTML;
+  
+        return Promise.all(scriptsToLoad);
+      })
+      .catch(error => console.error('Erro ao carregar a página:', error));
+  }
+  
+  function loadScript(src) {
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = src;
+      script.onload = resolve;
+      script.onerror = reject;
+      document.body.appendChild(script);
+    });
+  }
+  
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('nav a').forEach(link => {
+      link.addEventListener('click', event => {
+        event.preventDefault();
+        const url = event.target.getAttribute('href');
+        loadPage(url).then(() => {
+          if (url.includes('kmeans.html')) {
+            import('./kmeans.js').then(module => {
+              module.initializeKMeans();
             });
-    }
-
-    function loadScript(url) {
-        return new Promise((resolve, reject) => {
-            const script = document.createElement('script');
-            script.src = url;
-            script.onload = () => resolve(script);
-            script.onerror = () => reject(new Error(`Script load error for ${url}`));
-            document.head.append(script);
+          } else if (url.includes('hierarchical.html')) {
+            import('./hierarchical.js').then(module => {
+              module.initializeHierarchical();
+            });
+          }
         });
-    }
-
-    function loadScriptsForPage(page) {
-        let script = document.createElement('script');
-        script.src = `./clustering/${page}.js`;
-        script.onload = function() {
-            if (document.readyState === 'complete' || document.readyState === 'interactive') {
-                // Verifica se a página já foi carregada antes de tentar inicializar
-                if (window[`${page}Init`]) {
-                    window[`${page}Init`]();
-                }
-            }
-        };
-        script.onerror = function() {
-            console.error(`Error loading script: ${script.src}`);
-        };
-        document.body.appendChild(script);
-    }
-    
-});
+      });
+    });
+  });
+  
