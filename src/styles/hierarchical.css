@@ -1,12 +1,4 @@
-body,
-html,
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: 'Inconsolata', sans-serif;
-}
-
+/* 
 main {
   width: 100vw;
   min-height: 100vh;
@@ -35,36 +27,7 @@ main {
 .header select {
   font-size: 16px;
   cursor: pointer;
-}
-
-.body {
-  gap: 20px;
-  display: flex;
-  align-items: flex-start;
-}
-
-.presets {
-  width: 300px;
-  gap: 10px;
-  display: flex;
-  flex-direction: column;
-  cursor: pointer;
-  font-size: 10px;
-}
-
-.presets h5 {
-  font-size: 16px;
-}
-
-.presets span {
-  font-size: 16px;
-}
-
-.presets small {
-  font-size: 16px;
-  padding: 0px 5px;
-  border: 1px solid black;
-}
+} */
 
 .infos {
   margin-top: 20px;

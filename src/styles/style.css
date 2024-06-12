@@ -1,0 +1,202 @@
+* {
+    font-family: 'Ubuntu', sans-serif;
+}
+
+body {
+    background-color: #1e1e1e;
+    color: #ffffff;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.container {
+    width: 100%;
+    text-align: center;
+    height: 100vh;
+    z-index: 1;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 10px 0;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 24px;
+}
+
+.controls {
+    display: flex;
+    gap: 10px;
+}
+
+.controls button {
+    padding: 10px 20px;
+    font-size: 14px;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    background-color: #333;
+    color: #fff;
+    transition: background-color 0.3s;
+}
+
+.controls button:hover {
+    background-color: #555;
+}
+
+nav {
+    margin: 10px 0;
+    display: flex;
+    justify-content: center;
+    position: relative;
+    z-index: 3;
+}
+
+.nav-container {
+    display: flex;
+    border-radius: 30px;
+    overflow: visible;
+    background-color: #3a3a3a;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    position: relative;
+    padding: 0;
+}
+
+.nav-button {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.3s, transform 0.3s;
+    flex: 1;
+}
+
+.nav-button.left {
+    border-radius: 30px 0 0 30px;
+    background-color: #3a3a3a;
+    color: #fff;
+    padding-right: 30px;
+}
+
+.nav-button.right {
+    border-radius: 0 30px 30px 0;
+    background-color: #3a3a3a;
+    color: #fff;
+    padding-left: 30px;
+}
+
+.nav-button span {
+    width: 100px;
+    display: block;
+}
+
+.nav-button.active {
+    background-color: #555;
+    transform: translateY(-2px);
+}
+
+.nav-button:hover {
+    background-color: #555;
+}
+
+.compare-button {
+    width: 45px;
+    height: 45px;
+    background-color: #3a3a3a;
+    border: 1px solid #2e2e2e;
+    box-shadow: 0 4px 8px 4px #0003;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.3s;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+}
+
+.compare-button.active {
+    background-color: #555;
+    transform: translate(-50%, -52%);
+}
+
+.compare-button:hover {
+    background-color: #555;
+}
+
+.compare-icon {
+    font-size: 15px;
+    color: #fff;
+}
+
+main#content {
+    height: 90%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 2;
+}
+
+div#divContent {
+    padding: 20px;
+    border: 1px solid #333;
+    border-radius: 10px;
+    height: 95%;
+    width: 93%;
+    overflow-y: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #2e2e2e;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    position: relative;
+    top: -20px;
+}
+
+.loading {
+    display: none;
+    font-size: 18px;
+}
+
+.light-theme {
+    background-color: #ffffff;
+    color: #000000;
+}
+
+.light-theme header, .light-theme main, .light-theme nav {
+    border-color: #ccc;
+}
+
+.light-theme button {
+    background-color: #eee;
+    color: #000;
+}
+
+.light-theme button:hover {
+    background-color: #ddd;
+}
+
+.light-theme .nav-button {
+    background-color: #ddd;
+    color: #000;
+}
+
+.light-theme .nav-button:hover {
+    background-color: #bbb;
+}

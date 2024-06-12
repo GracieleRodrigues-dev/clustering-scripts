@@ -1,5 +1,5 @@
 import hcluster from 'hclusterjs';
-import dataset from '../dataset.json' assert { type: 'json' };
+import dataset from '../data/dataset.json' assert { type: 'json' };
 
 const width = 600;
 const height = 600;
@@ -203,7 +203,7 @@ const setup = () => {
           nodes,
           bestCutoff
         )}`;
-
+console.log(nodes, bestCutoff);
         // calculateElbowCurve(nodes.length);
       })
       .catch(error => {

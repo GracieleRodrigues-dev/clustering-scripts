@@ -1,10 +1,10 @@
-import datasetOriginal from '../dataset.json';
+import datasetOriginal from '../data/dataset.json';
 import { createDatasetFromPresets } from '../utils/functions.js';
-import { presets } from './presets.js';
+import { presets } from '../scripts/presets.js';
 
 
 //vamos carregar as opções dos presets
-document.addEventListener('DOMContentLoaded', () => {
+export function init() {
   document.querySelector('.fa-question-circle').addEventListener('click', () => {
     let message = "";
     Object.entries(presets).forEach(([preset, properties]) => {
@@ -183,7 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
       .style('margin-left', '30px');
   }
   
-});
+};
 
 document.getElementById("elbowButton").addEventListener("click", generateElbowCurve);
 
