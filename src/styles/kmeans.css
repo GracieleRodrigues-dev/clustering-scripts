@@ -1,3 +1,15 @@
+body {
+    padding: 2rem;
+}
+
+/* input[type="number"] {
+    width: 10rem;
+}
+
+select#presetSelect {
+    width: 10rem;
+} */
+
 #chart-container {
     display: flex;
     justify-content: center;
@@ -18,7 +30,7 @@
     margin-left: 5px;
     cursor: pointer;
 }
-  
+/*   
 .input-group {
     display: flex;
     align-items: center;
@@ -26,4 +38,5 @@
 
 .input-group label {
     margin-right: 10px;
-}
+} */
+

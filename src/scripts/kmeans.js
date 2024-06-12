@@ -2,7 +2,6 @@ import datasetOriginal from '../dataset.json';
 import { createDatasetFromPresets } from '../utils/functions.js';
 import { presets } from './presets.js';
 
-
 //vamos carregar as opções dos presets
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelector('.fa-question-circle').addEventListener('click', () => {
@@ -11,6 +10,25 @@ document.addEventListener('DOMContentLoaded', () => {
       message += `Preset ${preset}: ${properties.join(', ')}\n\n`;
     });
     alert(message);
+  });
+
+  document.querySelector('#newPreset').addEventListener('click', () => {
+    let nomePreset = document.querySelectorAll('input#nomePreset')[0].value;
+    let checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+    let valores = [];
+    checkboxes.forEach(function(checkbox) {
+      valores.push(checkbox.value);
+    });
+
+    presets[nomePreset] = valores;
+
+    const presetSelect = document.getElementById("presetSelect");
+    const option = document.createElement("option");
+    option.value = nomePreset;
+    option.text = nomePreset;
+    presetSelect.appendChild(option);
+    document.getElementById('myModal').classList.remove('show');
+    document.querySelectorAll('.modal-backdrop')[0].classList.remove('show');
   });
 
   const presetSelect = document.getElementById("presetSelect");
@@ -27,7 +45,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const height = 960;
 
   // Adiciona event listener ao botão
-  document.getElementById("clusterButton").addEventListener("click", make);
+  document.getElementById("clusterButton").addEventListener("click", async () => {
+    document.getElementById("loadingScreen").style.display = "block";
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    await make();
+    document.getElementById("loadingScreen").style.display = "none";
+});
 
   // Cria o modelo kmeans
   function make() {
@@ -185,7 +208,12 @@ document.addEventListener('DOMContentLoaded', () => {
   
 });
 
-document.getElementById("elbowButton").addEventListener("click", generateElbowCurve);
+document.getElementById("elbowButton").addEventListener("click", async () => {
+  document.getElementById("loadingScreen").style.display = "block";
+  await new Promise(resolve => setTimeout(resolve, 2000));
+  await generateElbowCurve();
+  document.getElementById("loadingScreen").style.display = "none";
+});
 
 async function generateElbowCurve() {
   const maxK = parseInt(document.getElementById("clusterInput").value) || 10;
