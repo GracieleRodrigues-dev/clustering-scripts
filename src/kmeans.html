@@ -21,17 +21,17 @@
          <div class="input-group">
             <label for="clusterInput">Número de Clusters:</label>
             <input type="number" min="1" id="clusterInput">
-            <i class="fa fa-question-circle help-icon" title="O número de clusters representa o número de grupos nos quais os dados serão divididos durante o processo de clustering."></i>
+            <i class="fa fa-question-circle help-icon" title="O número de clusters representa o número de grupos nos quais os dados serão divididos durante o processo de clustering. Caso não informado será utilizado o default = 3."></i>
          </div>
          <div class="input-group">
             <label for="maxIterInput">Número Máximo de Iterações:</label>
-            <input type="number" min="1" id="maxIterInput" value="10">
-            <i class="fa fa-question-circle help-icon" title="O número máximo de iterações define o número máximo de vezes que o algoritmo irá iterar para encontrar os clusters ótimos."></i>
+            <input type="number" min="1" id="maxIterInput" value="5">
+            <i class="fa fa-question-circle help-icon" title="O número máximo de iterações define o número máximo de vezes que o algoritmo irá iterar para encontrar os clusters ótimos. Caso não informado será utilizado o default = 5."></i>
          </div>
          <div class="input-group">
             <label for="thresholdInput">Limiar:</label>
-            <input type="number" min="0" step="0.01" id="thresholdInput" value="2">
-            <i class="fa fa-question-circle help-icon" title="O limiar é um valor que determina quando o algoritmo de clustering deve parar, se a mudança entre as iterações for menor que esse valor."></i>
+            <input type="number" min="0" step="0.01" id="thresholdInput" value="0.5">
+            <i class="fa fa-question-circle help-icon" title="O limiar é um valor que determina quando o algoritmo de clustering deve parar, se a mudança entre as iterações for menor que esse valor. Caso não informado será utilizado o default = 0.5"></i>
          </div>
          <button id="clusterButton">Cluster</button>
          <button id="elbowButton">Generate Elbow Curve</button>

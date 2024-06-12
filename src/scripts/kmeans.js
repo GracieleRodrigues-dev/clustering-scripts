@@ -198,9 +198,7 @@ async function generateElbowCurve() {
 
   async function calculateKMeans(k) {
       const options = {
-        'k': k,
-        'maxIter': 300,
-        'threshold': 1e-4,
+        'k': k
       };
       console.log(`Calculating K-means for k=${k}`);
       kmeansModels[k] = ml5.kmeans(data, options);        
